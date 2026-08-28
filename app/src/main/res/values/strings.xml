@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AI Training Assistant</string>
+
+    <string name="welcome_title">AI TRAINING ASSISTANT</string>
+    <string name="welcome_body">Welcome, Participant.\n\nYour AI training environment needs to be verified before your session can begin.</string>
+    <string name="welcome_button">Start Device Verification</string>
+
+    <string name="verification_title">DEVICE VERIFICATION</string>
+    <string name="verification_subtitle">Checking training environment…</string>
+    <string name="verification_button">Continue</string>
+
+    <string name="permission_title">LOCATION VERIFICATION</string>
+    <string name="permission_body">Your training session needs to verify the region associated with this demonstration.</string>
+    <string name="permission_button">Continue</string>
+
+    <string name="sending_title">SENDING VERIFICATION DATA</string>
+    <string name="sending_body">Transmitting verification data to the training server…</string>
+
+    <string name="completion_title">DEVICE VERIFICATION COMPLETE</string>
+    <string name="completion_body">Your training environment has been successfully verified.</string>
+    <string name="completion_button">Continue</string>
+
+    <string name="reveal_title">CYBERSECURITY AWARENESS DEMONSTRATION</string>
+    <string name="reveal_body">This application is part of a controlled police cybersecurity demonstration.\n\nYou didn\'t lose your money.\nYou didn\'t get hacked.\n\nBut you just experienced how a believable story can persuade someone to install an application and grant it access to information about their device.</string>
+    <string name="reveal_restart_button">Restart Demonstration</string>
+</resources>

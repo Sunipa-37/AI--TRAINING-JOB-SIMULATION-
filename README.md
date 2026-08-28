@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Trainly — here students train AI
 
 Trainly connects school and college students with real AI-training projects — labeling
@@ -98,6 +99,8 @@ database, or by adding an admin-facing "create project" screen (not included yet
 - **Backend:** Node.js, Express, PostgreSQL (`pg`), JWT auth (`jsonwebtoken`), password
   hashing (`bcryptjs`), Google auth verification (`google-auth-library`)
 =======
+=======
+>>>>>>> 457180f9cef6dcc5843cb1d604384ec197107d57
 # AI Training Assistant — Demonstration APK
 
 Controlled Android app for the police cybersecurity-awareness demo. Runs only
@@ -168,4 +171,7 @@ to install manually).
 - [ ] Internet disconnected
 - [ ] App backgrounded/resumed mid-flow
 - [ ] Backend unavailable
+<<<<<<< HEAD
+>>>>>>> 457180f9cef6dcc5843cb1d604384ec197107d57
+=======
 >>>>>>> 457180f9cef6dcc5843cb1d604384ec197107d57

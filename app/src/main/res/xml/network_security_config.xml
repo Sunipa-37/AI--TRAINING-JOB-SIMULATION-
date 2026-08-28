@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEV NOTE: usesCleartextTraffic="true" in the manifest is only for local
+  LAN testing against your laptop's Express server (http://192.168.x.x:5000).
+  Before the real police demonstration, point BASE_URL in ApiClient.kt at an
+  HTTPS endpoint and set usesCleartextTraffic="false".
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
