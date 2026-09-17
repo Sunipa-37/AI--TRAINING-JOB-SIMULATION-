@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADMIN - What Scammer Gets</title>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Consolas,monospace}
+body{background:#080a12;color:#cbd5e1}
+.head{background:#0f172a;border-bottom:2px solid #38bdf8;padding:14px 20px;display:flex;justify-content:space-between;align-items:center}
+.head b{color:#38bdf8}
+.live{background:#052e16;border:1px solid #22c55e;color:#22c55e;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.wrap{padding:16px;max-width:1200px;margin:0 auto}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:#151e32;border:1px solid #1e293b;border-radius:10px;overflow:hidden}
+.card h3{padding:10px 14px;background:#0f172a;border-bottom:1px solid #1e293b;font-size:12px;color:#94a3b8}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:#64748b;padding:8px 10px;text-align:left;background:#0f172a}
+td{font-size:12px;padding:10px;border-bottom:1px solid #1e293b30}
+tr:hover{background:#ffffff05}
+.btn{background:#38bdf8;color:#000;border:0;padding:5px 10px;border-radius:5px;font-weight:700;font-size:11px;cursor:pointer}
+.kv{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #1e293b;font-size:13px}
+.kv b{color:#64748b;font-size:11px}.kv span{color:#e2e8f0}
+.safe{background:#052e16;border:1px solid #16a34a;color:#4ade80;padding:10px;border-radius:8px;font-size:11px;margin-top:10px}
+#modal{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+#modal.open{display:flex}
+.box{background:#0f172a;border:1px solid #334155;border-radius:12px;width:100%;max-width:650px;max-height:90vh;overflow:auto}
+.box-head{padding:14px 16px;border-bottom:1px solid #1e293b;display:flex;justify-content:space-between}
+pre{background:#020617;border:1px solid #1e293b;padding:10px;border-radius:6px;font-size:10px;white-space:pre-wrap;margin-top:10px;color:#38bdf8}
+.notif-item{padding:8px 10px;border-bottom:1px solid #1e293b;background:#0f172a;margin-bottom:6px;border-left:3px solid #38bdf8;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="head">
+<div><b style="font-size:18px">SCAMMER VIEW</b></div>
+<div style="display:flex;gap:8px"><span class="live" id="sock">CONNECTING</span><button onclick="loadAll()" style="background:#1e293b;color:#fff;border:1px solid #334155;padding:5px 10px;border-radius:6px;cursor:pointer">Refresh</button></div>
+</div>
+<div class="wrap">
+<div class="grid">
+<div class="card">
+<h3>Connected Devices (<span id="cnt">0</span>)</h3>
+<table><thead><tr><th>ID</th><th>Manufacturer / Model</th><th>Android / SDK</th><th>Battery / Network</th><th>Location Perm</th><th>Action</th></tr></thead><tbody id="tb"><tr><td colspan="6" style="text-align:center;padding:30px;color:#475569">No data. Run Thunder Client POST /api/telemetry</td></tr></tbody></table>
+</div>
+<div class="card"><h3>LIVE TELEMETRY FEED</h3><div id="feed" style="padding:10px;font-size:11px;max-height:400px;overflow:auto;color:#64748b">Waiting...</div></div>
+</div>
+
+<div class="card" style="margin-top:16px;">
+<h3>Phone Notifications (<span id="notifCount">0</span>) <span style="float:right;color:#64748b;">Participant: <b id="notifPid" style="color:#38bdf8;">ALL</b></span></h3>
+<div id="notifList" style="padding:10px;max-height:400px;overflow:auto;font-size:12px;">Waiting for phone notifications...</div>
+</div>
+
+</div>
+<div id="modal" onclick="if(event.target===this)closeM()"><div class="box"><div class="box-head"><b id="mid" style="color:#38bdf8"></b><span onclick="closeM()" style="cursor:pointer">X</span></div><div style="padding:16px" id="mbody"></div></div></div>
+<script>
+const socket=io();
+let all=[];
+let currentPid = null;
+
+socket.on('connect',()=>document.getElementById('sock').textContent='LIVE CONNECTED');
+socket.on('telemetryUpdated',d=>{
+ const f=document.getElementById('feed'); const div=document.createElement('div'); div.style.padding='6px 0'; div.style.borderBottom='1px solid #1e293b';
+ div.innerHTML=`<b style="color:#38bdf8">${d.participantId}</b> ${d.manufacturer} ${d.model} - Batt ${d.batteryPercentage}% - ${d.networkType} - Loc: ${d.locationPermission}`;
+ f.prepend(div); loadAll();
+});
+
+socket.on('notification:new', n => { addNotifUI(n); });
+socket.on('phone-notif', n => { addNotifUI(n); });
+
+function addNotifUI(n){
+ const list = document.getElementById('notifList');
+ if(list.innerHTML.includes('Waiting')) list.innerHTML='';
+ if(currentPid && n.participantId !== currentPid) return;
+ const el = document.createElement('div');
+ el.className = 'notif-item';
+ el.innerHTML = `<div style="display:flex;justify-content:space-between;"><b style="color:#38bdf8;">${n.packageName}</b><small style="color:#64748b;">${n.participantId} ${n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : ''}</small></div><div style="color:white;margin:4px 0;"><b>${n.title||''}</b></div><div style="color:#cbd5e1;">${n.text||''}</div>`;
+ list.prepend(el);
+ document.getElementById('notifCount').textContent = list.children.length;
+}
+
+async function loadNotifications(pid){
+ currentPid = pid || null;
+ document.getElementById('notifPid').textContent = pid || 'ALL';
+ const url = pid ? `/api/phone-notifications?participantId=${pid}` : '/api/phone-notifications';
+ const r = await fetch(url);
+ const data = await r.json();
+ const list = document.getElementById('notifList');
+ list.innerHTML='';
+ if(data.length===0){ list.innerHTML='No notifications'; document.getElementById('notifCount').textContent='0'; return; }
+ data.forEach(n => {
+  const el = document.createElement('div');
+  el.className='notif-item';
+  el.innerHTML = `<div style="display:flex;justify-content:space-between;"><b style="color:#38bdf8;">${n.packageName}</b><small style="color:#64748b;">${n.participantId} ${n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : ''}</small></div><div style="color:white;margin:4px 0;"><b>${n.title||''}</b></div><div style="color:#cbd5e1;">${n.text||''}</div>`;
+  list.appendChild(el);
+ });
+ document.getElementById('notifCount').textContent = data.length;
+}
+
+async function loadAll(){
+ try{
+  const r=await fetch('/api/sessions'); all=await r.json();
+  document.getElementById('cnt').textContent=all.length;
+  const tb=document.getElementById('tb');
+  if(!all.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:#475569">No data</td></tr>';return}
+  tb.innerHTML=all.map(s=>{
+   const t=s.lastTelemetry||{}; const reg=s.registration||{};
+   return `<tr><td style="color:#38bdf8"><b>${s.participantId}</b><br><small style="color:#64748b">${reg.name||''}</small></td>
+   <td>${t.manufacturer||'-'}<br><small style="color:#64748b">${t.model||''}</small></td>
+   <td>Android ${t.androidVersion||'-'}<br><small>(SDK ${t.sdkVersion||'-'})</small></td>
+   <td>${t.batteryPercentage!=null?t.batteryPercentage+'%':'-'} ${t.charging?'(charging)':'(not charging)'}<br><small>${t.networkType||'No Connection'}</small></td>
+   <td><span style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:10px">${t.locationPermission||'-'}</span><br><small>${t.latitude? t.latitude+', '+t.longitude : 'Location fix: none'}</small></td>
+   <td><button class="btn" onclick="openM('${s.participantId}')">VIEW DUMP</button></td></tr>`
+  }).join('');
+ }catch(e){}
+}
+
+async function openM(pid){
+ document.getElementById('modal').classList.add('open'); document.getElementById('mid').textContent=pid;
+ document.getElementById('mbody').innerHTML='Loading...';
+ const r=await fetch('/api/session/'+pid); const d=await r.json(); const t=d.lastTelemetry||{};
+ const notifs = d.notifications || [];
+ loadNotifications(pid);
+ document.getElementById('mbody').innerHTML=`
+ <h4 style="font-size:12px;color:#38bdf8;margin-bottom:10px">WHAT THIS APP ACTUALLY COLLECTED:</h4>
+ <div class="kv"><b>Manufacturer:</b><span>${t.manufacturer||'realme'}</span></div>
+ <div class="kv"><b>Model:</b><span>${t.model||'RMX1921'}</span></div>
+ <div class="kv"><b>Android version:</b><span>${t.androidVersion||'11'} (SDK ${t.sdkVersion||'30'})</span></div>
+ <div class="kv"><b>Battery:</b><span>${t.batteryPercentage||'76'}% (${t.charging?'charging':'not charging'})</span></div>
+ <div class="kv"><b>Network:</b><span>${t.networkType||'No Connection'}</span></div>
+ <div class="kv"><b>Location perm.:</b><span>${t.locationPermission||'GRANTED_NO_FIX'}</span></div>
+ <div class="kv"><b>Location fix:</b><span>${t.latitude? t.latitude+', '+t.longitude : 'none'} ${t.latitude?`<a href="https://maps.google.com/?q=${t.latitude},${t.longitude}" target="_blank" style="color:#38bdf8">[Map]</a>`:''}</span></div>
+ <div class="kv"><b>Phone Notifications:</b><span>${notifs.length}</span></div>
+ <div style="margin-top:10px; max-height:200px; overflow:auto; background:#020617; border:1px solid #1e293b; padding:8px; border-radius:6px;">
+  ${notifs.length ? notifs.map(n=>`<div style="padding:6px; border-bottom:1px solid #1e293b;"><b style="color:#38bdf8;">${n.packageName}</b> ${n.title} - ${n.text}</div>`).join('') : 'No notifications yet'}
+ </div>
+ <div class="safe"> Nothing outside this list was accessed - no contacts, no messages, no files, no other apps.</div>
+ <pre>${JSON.stringify(d,null,2)}</pre>
+ `;
+}
+function closeM(){document.getElementById('modal').classList.remove('open');}
+loadAll(); 
+loadNotifications();
+setInterval(()=>{if(!document.getElementById('modal').classList.contains('open'))loadAll();},3000);
+</script>
+</body>
+</html>
