@@ -13,7 +13,7 @@ object ApiClient {
     // Android emulator → this PC:  "http://10.0.2.2:4000"
     // Real phone on same Wi-Fi:    "http://<your-laptop-LAN-IP>:4000"  (not localhost)
     // Real demonstration:          "https://your-demo-domain.example.com"
-    var BASE_URL = "http://10.0.2.2:4000"
+    var BASE_URL = "http://10.0.2.2:5000"
 
     private val executor = Executors.newSingleThreadExecutor()
 
