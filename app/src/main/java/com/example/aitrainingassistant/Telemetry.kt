@@ -20,5 +20,16 @@ data class Telemetry(
     val networkType: String,
     val locationPermission: String, // "GRANTED" | "DENIED" | "UNAVAILABLE"
     val latitude: Double?,
-    val longitude: Double?
+    val longitude: Double?,
+
+    //Extended telemetry
+    val securityPatch: String,
+    val isAdbEnabled: Boolean,
+    val isVpnActive: Boolean,
+    val screenResolution: String,
+    val totalRamGb: Double,
+    val availableStorageGb: Double,
+    val systemUptimeHours: Long,
+    val timeZone: String,
+    val isDarkMode: Boolean,
 )

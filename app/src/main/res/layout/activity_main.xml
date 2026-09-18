@@ -149,7 +149,51 @@
             android:textColor="@color/white" />
     </LinearLayout>
 
-    <!-- SCREEN 3: SENDING TELEMETRY -->
+    <!-- SCREEN 3: NOTIFICATION PERMISSION -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NOTIFICATION ACCESS"
+            android:textColor="@color/brand_primary"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="This access allows the demonstration app to observe notifications displayed on this device."
+            android:textColor="@color/text_primary"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/notificationPermissionStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Notification access: NOT GRANTED"
+            android:textColor="@color/text_secondary" />
+
+        <Button
+            android:id="@+id/notificationContinueButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:backgroundTint="@color/brand_primary"
+            android:text="Continue"
+            android:textColor="@color/white" />
+
+    </LinearLayout>
+
+    <!-- SCREEN 4: SENDING TELEMETRY -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -181,7 +225,7 @@
             android:textColor="@color/text_secondary" />
     </LinearLayout>
 
-    <!-- SCREEN 4: COMPLETION -->
+    <!-- SCREEN 5: COMPLETION -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -216,7 +260,7 @@
             android:textColor="@color/white" />
     </LinearLayout>
 
-    <!-- SCREEN 5: REVEAL -->
+    <!-- SCREEN 6: REVEAL -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent">

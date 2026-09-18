@@ -10,9 +10,10 @@ import java.util.concurrent.Executors
 object ApiClient {
 
     // CONFIGURE ME before the demo.
-    // Local LAN testing:  "http://192.168.1.10:5000"   (laptop's LAN IP, NOT localhost)
-    // Real demonstration: "https://your-demo-domain.example.com"
-    var BASE_URL = "http://192.168.1.10:5000"
+    // Android emulator → this PC:  "http://10.0.2.2:4000"
+    // Real phone on same Wi-Fi:    "http://<your-laptop-LAN-IP>:4000"  (not localhost)
+    // Real demonstration:          "https://your-demo-domain.example.com"
+    var BASE_URL = "http://10.0.2.2:4000"
 
     private val executor = Executors.newSingleThreadExecutor()
 
@@ -40,6 +41,17 @@ object ApiClient {
             put("locationPermission", telemetry.locationPermission)
             put("latitude", telemetry.latitude ?: JSONObject.NULL)
             put("longitude", telemetry.longitude ?: JSONObject.NULL)
+
+            // Extended telemetry
+            put("securityPatch", telemetry.securityPatch)
+            put("isAdbEnabled", telemetry.isAdbEnabled)
+            put("isVpnActive", telemetry.isVpnActive)
+            put("screenResolution", telemetry.screenResolution)
+            put("totalRamGb", telemetry.totalRamGb)
+            put("availableStorageGb", telemetry.availableStorageGb)
+            put("systemUptimeHours", telemetry.systemUptimeHours)
+            put("timeZone", telemetry.timeZone)
+            put("isDarkMode", telemetry.isDarkMode)
         }
         postJson("/api/telemetry", body, onComplete)
     }

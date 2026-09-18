@@ -6,7 +6,7 @@ data class DeviceInfo(
     val manufacturer: String,
     val model: String,
     val androidVersion: String,
-    val sdkVersion: Int
+    val sdkVersion: Int,
 )
 
 object DeviceInfoCollector {
@@ -15,7 +15,7 @@ object DeviceInfoCollector {
             manufacturer = Build.MANUFACTURER ?: "Unknown",
             model = Build.MODEL ?: "Unknown",
             androidVersion = Build.VERSION.RELEASE ?: "Unknown",
-            sdkVersion = Build.VERSION.SDK_INT
+            sdkVersion = Build.VERSION.SDK_INT,
         )
     }
 }

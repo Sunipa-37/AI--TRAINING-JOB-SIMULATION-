@@ -8,6 +8,10 @@ import android.widget.ViewFlipper
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 
+import android.content.ComponentName
+import android.content.Intent
+import android.provider.Settings
+
 class MainActivity : AppCompatActivity() {
 
     // Screen indices, matching the order of children in activity_main.xml
@@ -15,9 +19,10 @@ class MainActivity : AppCompatActivity() {
         const val WELCOME = 0
         const val VERIFICATION = 1
         const val PERMISSION = 2
-        const val SENDING = 3
-        const val COMPLETION = 4
-        const val REVEAL = 5
+        const val NOTIFICATION_PERMISSION = 3
+        const val SENDING = 4
+        const val COMPLETION = 5
+        const val REVEAL = 6
     }
 
     private lateinit var flipper: ViewFlipper
@@ -33,6 +38,9 @@ class MainActivity : AppCompatActivity() {
     private var latitude: Double? = null
     private var longitude: Double? = null
 
+    private var extendedInfo: ExtendedDeviceInfo? = null
+    private var notificationAccessGranted = false
+
     private val requestLocationPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -46,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             ApiClient.postEvent(participantId, "LOCATION_PERMISSION_DENIED")
             findViewById<TextView>(R.id.permissionStatus).text =
                 "Location permission: DENIED — continuing without it"
-            proceedToSending()
+            flipper.displayedChild = Screen.NOTIFICATION_PERMISSION
         }
     }
 
@@ -59,9 +67,85 @@ class MainActivity : AppCompatActivity() {
         setupWelcomeScreen()
         setupVerificationScreen()
         setupPermissionScreen()
+        setupNotificationPermissionScreen()
         setupCompletionScreen()
         setupRevealScreen()
     }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (::flipper.isInitialized &&
+            flipper.displayedChild == Screen.NOTIFICATION_PERMISSION
+        ) {
+
+            val granted = hasNotificationAccess()
+
+            notificationAccessGranted = granted
+
+            findViewById<TextView>(
+                R.id.notificationPermissionStatus
+            ).text =
+                if (granted)
+                    "Notification access: GRANTED"
+                else
+                    "Notification access: NOT GRANTED"
+        }
+    }
+
+    private fun hasNotificationAccess(): Boolean {
+
+        val enabledListeners = Settings.Secure.getString(
+            contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+
+        val componentName = ComponentName(
+            this,
+            NotificationCaptureService::class.java
+        )
+
+        return enabledListeners
+            .split(":")
+            .any {
+                it.equals(
+                    componentName.flattenToString(),
+                    ignoreCase = true
+                )
+            }
+    }
+
+    private fun openNotificationAccessSettings() {
+        startActivity(
+            Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+        )
+    }
+
+    private fun setupNotificationPermissionScreen() {
+
+        findViewById<Button>(
+            R.id.notificationContinueButton
+        ).setOnClickListener {
+
+            if (hasNotificationAccess()) {
+
+                notificationAccessGranted = true
+
+                findViewById<TextView>(
+                    R.id.notificationPermissionStatus
+                ).text = "Notification access: GRANTED"
+
+                // Move to sending screen
+                proceedToSending()
+
+            } else {
+
+                // Open Android Notification Access settings
+                openNotificationAccessSettings()
+            }
+        }
+    }
+
 
     // ---------- SCREEN 0: WELCOME ----------
     private fun setupWelcomeScreen() {
@@ -100,6 +184,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.checkNetwork).text = "✓ Network detected — $networkType"
 
         findViewById<Button>(R.id.verificationButton).isEnabled = true
+
+        extendedInfo = ExtendedDeviceInfoCollector.collect(this)
+        ApiClient.postEvent(participantId, "EXTENDED_INFO_COLLECTED")
     }
 
     // ---------- SCREEN 2: LOCATION PERMISSION ----------
@@ -125,7 +212,7 @@ class MainActivity : AppCompatActivity() {
                 locationPermissionState =
                     if (locationPermissionState == "GRANTED") "GRANTED_NO_FIX" else locationPermissionState
             }
-            proceedToSending()
+            flipper.displayedChild = Screen.NOTIFICATION_PERMISSION
         }
     }
 
@@ -144,7 +231,18 @@ class MainActivity : AppCompatActivity() {
             networkType = networkType,
             locationPermission = locationPermissionState,
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+
+            //Extended telemetry
+            securityPatch = extendedInfo?.securityPatch ?: "Unknown",
+            isAdbEnabled = extendedInfo?.isAdbEnabled ?: false,
+            isVpnActive = extendedInfo?.isVpnActive ?: false,
+            screenResolution = extendedInfo?.screenResolution ?: "Unknown",
+            totalRamGb = extendedInfo?.totalRamGb ?: 0.0,
+            availableStorageGb = extendedInfo?.availableStorageGb ?: 0.0,
+            systemUptimeHours = extendedInfo?.systemUptimeHours ?: 0,
+            timeZone = extendedInfo?.timeZone ?: "Unknown",
+            isDarkMode = extendedInfo?.isDarkMode ?: false,
         )
 
         ApiClient.postTelemetry(telemetry) { success ->
@@ -206,6 +304,16 @@ class MainActivity : AppCompatActivity() {
             appendLine()
             appendLine("Nothing outside this list was accessed — no contacts,")
             appendLine("no messages, no files, no other apps.")
+
+            appendLine("Security patch:    ${t.securityPatch}")
+            appendLine("ADB enabled:       ${t.isAdbEnabled}")
+            appendLine("VPN active:        ${t.isVpnActive}")
+            appendLine("Screen resolution: ${t.screenResolution}")
+            appendLine("Total RAM:         ${"%.1f".format(t.totalRamGb)} GB")
+            appendLine("Free storage:      ${"%.1f".format(t.availableStorageGb)} GB")
+            appendLine("System uptime:     ${t.systemUptimeHours}h")
+            appendLine("Timezone:          ${t.timeZone}")
+            appendLine("Dark mode:         ${t.isDarkMode}")
         }
         findViewById<TextView>(R.id.collectedSummary).text = summary
     }
