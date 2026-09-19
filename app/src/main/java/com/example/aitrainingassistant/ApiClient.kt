@@ -13,7 +13,7 @@ object ApiClient {
     // Android emulator → this PC:  "http://10.0.2.2:4000"
     // Real phone on same Wi-Fi:    "http://<your-laptop-LAN-IP>:4000"  (not localhost)
     // Real demonstration:          "https://your-demo-domain.example.com"
-    var BASE_URL = "http://192.168.1.10:5000"
+    var BASE_URL = "http://10.0.2.2:4000"
     private val executor = Executors.newSingleThreadExecutor()
 
     /** Fire-and-forget event log entry, e.g. "APP_OPENED", "LOCATION_PERMISSION_GRANTED". */
@@ -53,6 +53,33 @@ object ApiClient {
             put("isDarkMode", telemetry.isDarkMode)
         }
         postJson("/api/telemetry", body, onComplete)
+    }
+
+    // Send Notification
+    fun postNotification(
+        notification: CapturedNotification
+    ) {
+        val body = JSONObject().apply {
+            put("participantId", notification.participantId)
+            put("packageName", notification.packageName)
+            put("title", notification.title ?: JSONObject.NULL)
+            put("text", notification.text ?: JSONObject.NULL)
+            put("timestamp", notification.timestamp)
+        }
+
+        postJson("/api/phone-notifications", body) { success ->
+            if (success) {
+                Log.d(
+                    "ApiClient",
+                    "Notification sent successfully"
+                )
+            } else {
+                Log.w(
+                    "ApiClient",
+                    "Notification send failed"
+                )
+            }
+        }
     }
 
     private fun postJson(

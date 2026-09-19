@@ -1,6 +1,7 @@
 # Optional: spins up just PostgreSQL for local development.
 # Run:  docker compose up -d
-# Then point server/.env DATABASE_URL at localhost:5432 (see server/.env.example).
+# Then point server/.env DATABASE_URL at localhost:5433 (see server/.env.example).
+# Host port 5433 avoids a local Windows PostgreSQL install that already uses 5432.
 version: "3.8"
 services:
   postgres:

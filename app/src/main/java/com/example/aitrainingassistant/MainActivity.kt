@@ -63,6 +63,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         flipper = findViewById(R.id.viewFlipper)
 
+        getSharedPreferences("demo_config", MODE_PRIVATE)
+            .edit()
+            .putString("participantId", participantId)
+            .apply()
+
         ApiClient.postEvent(participantId, "APP_OPENED")
         setupWelcomeScreen()
         setupVerificationScreen()

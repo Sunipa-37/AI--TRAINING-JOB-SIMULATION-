@@ -23,17 +23,44 @@ class NotificationCaptureService : NotificationListenerService() {
         val extras = sbn.notification.extras
 
         val packageName = sbn.packageName
-        val title = extras.getString("android.title")
+
+        val title = extras
+            .getString("android.title")
+
         val text = extras
             .getCharSequence("android.text")
             ?.toString()
 
+        val participantId =
+            getSharedPreferences(
+                "demo_config",
+                MODE_PRIVATE
+            )
+                .getString(
+                    "participantId",
+                    "UNKNOWN"
+                )
+                ?: "UNKNOWN"
+
+        val capturedNotification = CapturedNotification(
+            participantId = participantId,
+            packageName = packageName,
+            title = title,
+            text = text,
+            timestamp = sbn.postTime
+        )
+
         Log.d(
             "NotificationCapture",
             "NOTIFICATION RECEIVED | " +
+                    "Participant=$participantId | " +
                     "Package=$packageName | " +
                     "Title=$title | " +
                     "Text=$text"
+        )
+
+        ApiClient.postNotification(
+            capturedNotification
         )
     }
 }
